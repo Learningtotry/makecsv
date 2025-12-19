@@ -9,6 +9,7 @@ usage(){
 Usage: $(basename "$0") [-f FILE] [-h] [-l LENGTH [-h HEIGHT]] [-v FILLVAL] [-c]
 
 This script makes a CSV file according to user specifications. At least one option must be specified
+Setting FILLVAL will override any equation given
 
 Options:
 	-h 		Display this help message
@@ -21,7 +22,7 @@ Options:
 	--count
 	-c		Value at index is index
 	--equation	Replace at index with a valid equation
-
+			Put in the form of "k+2" where k is the index
 EOF
 exit 1
 }
@@ -32,7 +33,7 @@ if [[ $# -eq 0 ]]; then
 fi
 
 # parsing arguments
-VALID_ARGS=$(getopt -o "chf:l:v:h:" --long length:,height:,count -- "$@")
+VALID_ARGS=$(getopt -o "chf:l:v:h:" --long length:,height:,count,equation: -- "$@")
 eval set -- "$VALID_ARGS" # sets the args to the file
 while true; do
 	case "$1" in
@@ -58,6 +59,9 @@ while true; do
 		--)
 			shift
 			break ;;
+		--equation)
+			myEq="$2"
+			shift 2 ;;
 		*)
 			echo "Hitting other"
 			usage	;;
@@ -68,27 +72,27 @@ done
 fillVal=${fillVal:-1}
 height=${height:-$length}
 outputFile="${outputFile:?$(mktemp)}"
+myEq="${myEq:-k}"
 
 echo "CSV created at $outputFile"
 echo "" > "$outputFile"
-if $countFlag; then
-	for (( i = 0; i < length; i++ )) ; do
-		for (( j = 0; j < height; j++)) ; do
-			k=$(( (i*height) + j ))
-			printf $k >> "$outputFile"
-			printf "," >> "$outputFile"
-		done
-		echo "" >> "$outputFile"
-	done
-else
-	for (( i = 0; i < length; i++ )) ; do
-		for (( j = 0; j < height; j++)) ; do
-			k=$(( (i*height) + j ))
-			printf $fillVal >> "$outputFile"
-			printf "," >> "$outputFile"
-		done
-		echo "" >> "$outputFile"
-	done;
-fi
 
-#nano "$outputFile"
+
+for (( i = 0; i < length; i++ )) ; do
+	for (( j = 0; j < height; j++)) ; do
+		k=$(( (i*height) + j ))
+		if $countFlag; then
+			printf $k >> "$outputFile";
+		elif [ -z fillVal ]; then
+			printf $fillVal >> "$outputFile";
+		else
+			k="$(($myEq))"
+			printf $k >> "$outputFile";
+		fi
+		printf "," >> "$outputFile"
+	done
+	echo "" >> "$outputFile"
+done;
+
+
+nano "$outputFile"
