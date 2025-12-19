@@ -1,76 +1,80 @@
 #!/bin/bash
 
 outputFile=$(mktemp)
-length=64
-# TODO: add a width integer possibility
+length=4
+countFlag=false
 
 usage(){
 	cat << EOF
-Usage: $(basename "$0") [-f FILE] [-h] [-l INT] [-l INT -w INT]
+Usage: $(basename "$0") [-f FILE] [-h] [-l LENGTH [-h HEIGHT]] [-v FILLVAL] [-c]
 
-This script makes a CSV file according to user specifications
+This script makes a CSV file according to user specifications. At least one option must be specified
 
 Options:
 	-h 		Display this help message
 	-f FILE 	Set file to put CSV in
-	-l INT		Set size of matrix, if -w is not set
-	-w INT		Control width if -l is set
+	--length INT
+	-l INT		Set length of matrix (default 4), if -h not set then also becomes height
+	--height HEIGHT
+	-h HEIGHT	Control height of CSV
 	-v INT		Default value to set when not counting, default is 1
+	--count
 	-c		Value at index is index
+	--equation	Replace at index with a valid equation
+
 EOF
 exit 1
 }
 
+# user must use at least one argument
 if [[ $# -eq 0 ]]; then
 	usage
-	exit
 fi
 
-
-countFlag=false
-while getopts "f:l:hcv:w:" OPT; do
-	case $OPT in
-		f)
-		if [[ ${ $OPTARG: -3 } == ".csv" ]]; then
-			break
-		fi
-		outputFile=$OPTARG".csv"
-		;;
-		l)
-		length=$OPTARG
-		;;
-		h)
-		usage
-		break
-		;;
-		c)
-		countFlag=true
-		;;
-		v)
-		fillVal=$OPTARG
-		;;
-		w)
-		width=$OPTARG
-		;;
+# parsing arguments
+VALID_ARGS=$(getopt -o "chf:l:v:h:" --long length:,height:,count -- "$@")
+eval set -- "$VALID_ARGS" # sets the args to the file
+while true; do
+	case "$1" in
+		-f)
+			if [[ "${2: -4}" == ".csv" ]]; then
+				outputFile="$2";
+			else
+				outputFile="$2.csv";
+			fi
+			shift 2 ;;
+		-l | --length)
+			length="$2"
+			shift 2	;;
+		-h | --height)
+			height="$2"
+			shift 2	;;
+		-c | --count)
+			countFlag=true
+			shift	;;
+		-v)
+			fillVal="$2"
+			shift 2	;;
+		--)
+			shift
+			break ;;
 		*)
-		break;;
+			echo "Hitting other"
+			usage	;;
 	esac
 done
 
+# set values if no option specified
 fillVal=${fillVal:-1}
-width=${width:-$(length)}
-
-
+height=${height:-$length}
 outputFile="${outputFile:?$(mktemp)}"
 
-echo "$outputFile is outputfile"
+echo "CSV created at $outputFile"
 echo "" > "$outputFile"
-
-
 if $countFlag; then
 	for (( i = 0; i < length; i++ )) ; do
-		for (( j = 0; j < width; j++)) ; do
-			k=$(( (i*width) + j ))
+		for (( j = 0; j < height; j++)) ; do
+			k=$(( (i*height) + j ))
 			printf $k >> "$outputFile"
 			printf "," >> "$outputFile"
 		done
@@ -78,11 +82,13 @@ if $countFlag; then
 	done
 else
 	for (( i = 0; i < length; i++ )) ; do
-		for (( j = 0; j < width; j++)) ; do
-			k=$(( (i*width) + j ))
+		for (( j = 0; j < height; j++)) ; do
+			k=$(( (i*height) + j ))
 			printf $fillVal >> "$outputFile"
 			printf "," >> "$outputFile"
 		done
 		echo "" >> "$outputFile"
 	done;
 fi
+
+#nano "$outputFile"
