@@ -58,6 +58,8 @@ while getopts "f:l:hcv:w:" OPT; do
 done
 
 fillVal=${fillVal:-1}
+width=${width:-$(length)}
+
 
 outputFile="${outputFile:?$(mktemp)}"
 
@@ -67,8 +69,8 @@ echo "" > "$outputFile"
 
 if $countFlag; then
 	for (( i = 0; i < length; i++ )) ; do
-		for (( j = 0; j < length; j++)) ; do
-			k=$(( (i*length) + j ))
+		for (( j = 0; j < width; j++)) ; do
+			k=$(( (i*width) + j ))
 			printf $k >> "$outputFile"
 			printf "," >> "$outputFile"
 		done
@@ -76,14 +78,11 @@ if $countFlag; then
 	done
 else
 	for (( i = 0; i < length; i++ )) ; do
-		for (( j = 0; j < length; j++)) ; do
-			k=$(( (i*length) + j ))
+		for (( j = 0; j < width; j++)) ; do
+			k=$(( (i*width) + j ))
 			printf $fillVal >> "$outputFile"
 			printf "," >> "$outputFile"
 		done
 		echo "" >> "$outputFile"
 	done;
 fi
-
-
-
