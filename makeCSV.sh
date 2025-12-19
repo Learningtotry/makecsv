@@ -67,10 +67,23 @@ while true; do
 	esac
 done
 
+
+if [ -a "$outputFile" ]; then
+	choice="n"
+	read -p "File ${outputFile@U} already exists, overwrite it? (y/n):" choice
+	if [[ "$choice" == "y" ]]; then
+		echo "Choice was $choice"
+		echo "Overwriting $outputFile...";
+	else
+		echo "Terminating process..."
+		exit 0;
+	fi;
+fi
+
 # set values if no option specified
 fillVal=${fillVal:-1}
 height=${height:-$length}
-outputFile="${outputFile:?$(mktemp)}"
+outputFile="${outputFile:-$(mktemp)}"
 myEq="${myEq:-k}"
 
 echo "CSV created at $outputFile"
