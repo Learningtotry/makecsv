@@ -12,7 +12,6 @@ This script makes a CSV file according to user specifications. At least one opti
 Setting FILLVAL will override any equation given
 
 Options:
-	-h 		Display this help message
 	-f FILE 	Set file to put CSV in
 	--length INT
 	-l INT		Set length of matrix (default 4), if -h not set then also becomes height
@@ -22,7 +21,7 @@ Options:
 	--count
 	-c		Value at index is index
 	--equation	Replace at index with a valid equation
-			Put in the form of "k+2" where k is the index
+			Put in the form of "k+2" where k is the index, works with any valid Bash math expression
 EOF
 exit 1
 }
